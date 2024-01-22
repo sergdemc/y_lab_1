@@ -1,18 +1,18 @@
 import datetime
 import uuid
 from typing import List
-from typing_extensions import Annotated
-from sqlalchemy import ForeignKey, text, UUID, Column
-from sqlalchemy.orm import relationship, Mapped, mapped_column
-from database.db import Base
 
+from database.db import Base
+from sqlalchemy import ForeignKey, text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing_extensions import Annotated
 
 intpk = Annotated[uuid.UUID, mapped_column(primary_key=True, index=True, default=uuid.uuid4, unique=True)]
 created_at = Annotated[datetime.datetime, mapped_column(server_default=text("TIMEZONE('utc', NOW())"))]
 updated_at = Annotated[datetime.datetime, mapped_column(
-        server_default=text("TIMEZONE('utc', NOW())"),
-        onupdate=datetime.datetime.utcnow
-    )]
+    server_default=text("TIMEZONE('utc', NOW())"),
+    onupdate=datetime.datetime.utcnow
+)]
 
 
 class Menu(Base):

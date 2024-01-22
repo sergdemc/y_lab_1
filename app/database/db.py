@@ -1,6 +1,6 @@
+from config import POSTGRES_URL
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from config import POSTGRES_URL
 
 engine = create_engine(POSTGRES_URL)
 session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)

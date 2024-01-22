@@ -1,10 +1,11 @@
 import uuid
 
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
 from database.db import get_session
-from database.models import Menu
-from schemas.menu_schemas import MenuSchemeCreate, MenuScheme
+from database.models import Dish, Menu, Submenu
+from fastapi import APIRouter, Depends, HTTPException
+from schemas.menu_schemas import (MenuScheme, MenuSchemeCreate,
+                                  MenuWithDetailsScheme)
+from sqlalchemy.orm import Session
 
 menu_router = APIRouter(prefix="/menus", tags=["Menu"])
 
@@ -18,18 +19,51 @@ def create_menu(menu: MenuSchemeCreate, session: Session = Depends(get_session))
     return db_menu
 
 
-@menu_router.get("/{menu_id}", response_model=MenuScheme)
+@menu_router.get("/{menu_id}", response_model=MenuWithDetailsScheme)
 def read_menu(menu_id: uuid.UUID, session: Session = Depends(get_session)):
     menu = session.query(Menu).filter(Menu.id == menu_id).first()
     if menu is None:
         raise HTTPException(status_code=404, detail="menu not found")
+
+    submenu_count = session.query(Submenu).filter(Submenu.menu_id == menu.id).count()
+    dish_count = session.query(Dish).join(Submenu).filter(Submenu.menu_id == menu.id).count()
+
+    menu = MenuWithDetailsScheme(
+        id=menu.id,
+        title=menu.title,
+        description=menu.description,
+        submenus_count=submenu_count,
+        dishes_count=dish_count
+    )
+
     return menu
 
 
-@menu_router.get("/", response_model=list[MenuScheme])
+@menu_router.get("/", response_model=list[MenuWithDetailsScheme])
 def read_menus(session: Session = Depends(get_session)):
     menus = session.query(Menu).all()
-    return menus
+    menus_with_details = []
+
+    for menu in menus:
+        submenu_count = session.query(Submenu).filter(Submenu.menu_id == menu.id).count()
+        dish_count = session.query(Dish).join(Submenu).filter(Submenu.menu_id == menu.id).count()
+
+        menu_info = MenuWithDetailsScheme(
+            id=menu.id,
+            title=menu.title,
+            description=menu.description,
+            submenus_count=submenu_count,
+            dishes_count=dish_count
+        )
+        menus_with_details.append(menu_info)
+
+    return menus_with_details
+
+
+# @menu_router.get("/", response_model=list[MenuWithDetailsScheme])
+# def read_menus(session: Session = Depends(get_session)):
+#     menus = session.query(Menu).all()
+#     return menus
 
 
 @menu_router.put("/{menu_id}", response_model=MenuScheme)
@@ -63,4 +97,5 @@ def delete_menu(menu_id: uuid.UUID, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="menu not found")
     session.delete(menu)
     session.commit()
+
     return menu

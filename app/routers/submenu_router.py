@@ -1,10 +1,11 @@
 import uuid
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
 
 from database.db import get_session
-from database.models import Menu, Submenu, Dish
-from schemas.submenu_schemas import SubmenuScheme, SubmenuSchemeCreate
+from database.models import Dish, Menu, Submenu
+from fastapi import APIRouter, Depends, HTTPException
+from schemas.submenu_schemas import (SubmenuScheme, SubmenuSchemeCreate,
+                                     SubmenuWithDishCountScheme)
+from sqlalchemy.orm import Session
 
 submenu_router = APIRouter(prefix="/menus", tags=["Submenu"])
 
@@ -21,22 +22,54 @@ def create_submenu(menu_id: uuid.UUID, submenu: SubmenuSchemeCreate, session: Se
     return db_submenu
 
 
-@submenu_router.get("/{menu_id}/submenus/{submenu_id}", response_model=SubmenuScheme)
+@submenu_router.get("/{menu_id}/submenus/{submenu_id}", response_model=SubmenuWithDishCountScheme)
 def read_submenu(submenu_id: uuid.UUID, session: Session = Depends(get_session)):
     submenu = session.query(Submenu).filter(Submenu.id == submenu_id).first()
     if submenu is None:
         raise HTTPException(status_code=404, detail="submenu not found")
+
+    dish_count = session.query(Dish).filter(Dish.submenu_id == submenu.id).count()
+
+    submenu = SubmenuWithDishCountScheme(
+        id=submenu.id,
+        title=submenu.title,
+        description=submenu.description,
+        dishes_count=dish_count
+    )
+
     return submenu
 
 
-@submenu_router.get("/{menu_id}/submenus", response_model=list[SubmenuScheme])
+@submenu_router.get("/{menu_id}/submenus", response_model=list[SubmenuWithDishCountScheme])
 def read_submenus(menu_id: uuid.UUID, session: Session = Depends(get_session)):
     menu = session.query(Menu).filter(Menu.id == menu_id).first()
-    if menu is None:
-        raise HTTPException(status_code=404, detail="menu not found")
+    # if menu is None:
+    #     raise HTTPException(status_code=404, detail="menu not found")
 
-    submenus = menu.submenus
-    return submenus
+    submenus = session.query(Submenu).filter(Submenu.menu_id == menu_id).all()
+    submenus_with_dish_count = []
+
+    for submenu in submenus:
+        dish_count = session.query(Dish).filter(Dish.submenu_id == submenu.id).count()
+
+        submenu_info = SubmenuWithDishCountScheme(
+            id=submenu.id,
+            title=submenu.title,
+            description=submenu.description,
+            dishes_count=dish_count
+        )
+        submenus_with_dish_count.append(submenu_info)
+
+    return submenus_with_dish_count
+
+
+# def read_submenus(menu_id: uuid.UUID, session: Session = Depends(get_session)):
+#     menu = session.query(Menu).filter(Menu.id == menu_id).first()
+#     if menu is None:
+#         raise HTTPException(status_code=404, detail="menu not found")
+#
+#     submenus = menu.submenus
+#     return submenus
 
 
 @submenu_router.patch("/{menu_id}/submenus/{submenu_id}", response_model=SubmenuScheme)
@@ -44,39 +77,37 @@ def update_submenu(
     menu_id: uuid.UUID,
     submenu_id: uuid.UUID,
     updated_submenu: SubmenuSchemeCreate,
-    db: Session = Depends(get_session)
+    session: Session = Depends(get_session)
 ):
 
-    menu = db.query(Menu).filter(Menu.id == menu_id).first()
+    menu = session.query(Menu).filter(Menu.id == menu_id).first()
     if menu is None:
         raise HTTPException(status_code=404, detail="menu not found")
 
-    submenu = db.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
+    submenu = session.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
     if submenu is None:
         raise HTTPException(status_code=404, detail="submenu not found or does not belong to the specified menu")
 
     for key, value in updated_submenu.model_dump().items():
         setattr(submenu, key, value)
 
-    db.commit()
-    db.refresh(submenu)
+    session.commit()
+    session.refresh(submenu)
     return submenu
 
 
 @submenu_router.delete("/{menu_id}/submenus/{submenu_id}", response_model=SubmenuScheme)
-def delete_submenu(menu_id: uuid.UUID, submenu_id: uuid.UUID, db: Session = Depends(get_session)):
-    menu = db.query(Menu).filter(Menu.id == menu_id).first()
+def delete_submenu(menu_id: uuid.UUID, submenu_id: uuid.UUID, session: Session = Depends(get_session)):
+    menu = session.query(Menu).filter(Menu.id == menu_id).first()
     if menu is None:
         raise HTTPException(status_code=404, detail="menu not found")
 
-    submenu = db.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
+    submenu = session.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
     if submenu is None:
         raise HTTPException(status_code=404, detail="submenu not found or does not belong to the specified menu")
 
-    submenu = db.query(Submenu).filter(Submenu.id == submenu_id).first()
-    if submenu is None:
-        raise HTTPException(status_code=404, detail="submenu not found")
+    session.query(Dish).filter(Dish.submenu_id == submenu_id).delete()
+    session.delete(submenu)
+    session.commit()
 
-    db.delete(submenu)
-    db.commit()
-    return submenu
+    return SubmenuScheme.model_validate(submenu)

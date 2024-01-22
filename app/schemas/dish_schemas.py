@@ -1,21 +1,17 @@
 import uuid
-from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class DishSchemeCreate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     title: str
     description: str
     price: str
 
 
 class DishScheme(DishSchemeCreate):
-    id: Optional[uuid.UUID]
+    id: uuid.UUID
 
     class Config:
         orm_mode = True
-
-
-class DishWithSubmenu(DishScheme):
-    submenu_id: int

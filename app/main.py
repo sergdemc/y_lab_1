@@ -1,12 +1,11 @@
 import uvicorn
+from config import PORT
+from database.db import Base, engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from database.db import Base, engine
-from config import PORT
+from routers.dish_router import dish_router
 from routers.menu_router import menu_router
 from routers.submenu_router import submenu_router
-from routers.dish_router import dish_router
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()

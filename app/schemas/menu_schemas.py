@@ -1,7 +1,7 @@
 import uuid
-from typing import Optional, List
-from pydantic import BaseModel
+from typing import List
 
+from pydantic import BaseModel
 from schemas.submenu_schemas import SubmenuScheme
 
 
@@ -11,7 +11,7 @@ class MenuSchemeCreate(BaseModel):
 
 
 class MenuScheme(MenuSchemeCreate):
-    id: Optional[uuid.UUID]
+    id: uuid.UUID
 
     class Config:
         orm_mode = True
@@ -20,3 +20,10 @@ class MenuScheme(MenuSchemeCreate):
 class MenuWithSubmenus(MenuScheme):
     submenus: List[SubmenuScheme]
 
+
+class MenuWithDetailsScheme(BaseModel):
+    id: uuid.UUID
+    title: str
+    description: str
+    submenus_count: int
+    dishes_count: int

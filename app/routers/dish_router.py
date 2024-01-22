@@ -1,10 +1,10 @@
 import uuid
 
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
 from database.db import get_session
-from database.models import Menu, Submenu, Dish
+from database.models import Dish, Menu, Submenu
+from fastapi import APIRouter, Depends, HTTPException
 from schemas.dish_schemas import DishScheme, DishSchemeCreate
+from sqlalchemy.orm import Session
 
 dish_router = APIRouter(prefix="/menus", tags=["Dish"])
 
@@ -55,7 +55,7 @@ def read_dishes(menu_id: uuid.UUID, submenu_id: uuid.UUID, session: Session = De
 
     submenu = session.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
     if submenu is None:
-        raise HTTPException(status_code=404, detail="submenu not found or does not belong to the specified menu")
+        return []
 
     dishes = session.query(Dish).filter(Dish.submenu_id == submenu_id).all()
     return dishes
@@ -108,6 +108,8 @@ def delete_dish(
     if dish is None:
         raise HTTPException(status_code=404, detail="dish not found")
 
+    dish_data = DishScheme.model_validate(dish)
     session.delete(dish)
     session.commit()
-    return dish
+
+    return dish_data
