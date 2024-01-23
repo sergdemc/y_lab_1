@@ -1,8 +1,6 @@
 import uuid
-from typing import List
 
 from pydantic import BaseModel
-from schemas.submenu_schemas import SubmenuScheme
 
 
 class MenuSchemeCreate(BaseModel):
@@ -15,10 +13,6 @@ class MenuScheme(MenuSchemeCreate):
 
     class Config:
         orm_mode = True
-
-
-class MenuWithSubmenus(MenuScheme):
-    submenus: List[SubmenuScheme]
 
 
 class MenuWithDetailsScheme(BaseModel):

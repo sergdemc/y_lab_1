@@ -44,11 +44,17 @@ def read_dish(
     dish = session.query(Dish).filter(Dish.id == dish_id).first()
     if dish is None:
         raise HTTPException(status_code=404, detail="dish not found")
+    dish.price = "{:.2f}".format(float(dish.price))
     return dish
 
 
 @dish_router.get("/{menu_id}/submenus/{submenu_id}/dishes", response_model=list[DishScheme])
-def read_dishes(menu_id: uuid.UUID, submenu_id: uuid.UUID, session: Session = Depends(get_session)):
+def read_dishes(
+        menu_id: uuid.UUID,
+        submenu_id: uuid.UUID,
+        session: Session = Depends(get_session),
+        round_digits: int = 2
+):
     menu = session.query(Menu).filter(Menu.id == menu_id).first()
     if menu is None:
         raise HTTPException(status_code=404, detail="menu not found")
@@ -58,6 +64,9 @@ def read_dishes(menu_id: uuid.UUID, submenu_id: uuid.UUID, session: Session = De
         return []
 
     dishes = session.query(Dish).filter(Dish.submenu_id == submenu_id).all()
+    for dish in dishes:
+        dish.price = "{:.2f}".format(float(dish.price))
+
     return dishes
 
 
