@@ -10,19 +10,27 @@ dish_router = APIRouter(prefix="/menus", tags=["Dish"])
 
 
 @dish_router.post("/{menu_id}/submenus/{submenu_id}/dishes", response_model=DishScheme, status_code=201)
-def create_dish(menu_id: uuid.UUID, submenu_id: uuid.UUID, dish: DishSchemeCreate, db: Session = Depends(get_session)):
-    menu = db.query(Menu).filter(Menu.id == menu_id).first()
+def create_dish(
+        menu_id: uuid.UUID,
+        submenu_id: uuid.UUID,
+        dish: DishSchemeCreate,
+        session: Session = Depends(get_session)
+):
+    menu = session.query(Menu).filter(Menu.id == menu_id).first()
     if menu is None:
         raise HTTPException(status_code=404, detail="menu not found")
 
-    submenu = db.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
+    submenu = session.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
     if submenu is None:
-        raise HTTPException(status_code=404, detail="submenu not found or does not belong to the specified menu")
+        raise HTTPException(status_code=404, detail="submenu not found")
+
+    if session.query(Dish).filter(Dish.title == dish.title).first() is not None:
+        raise HTTPException(status_code=400, detail="dish exists")
 
     db_dish = Dish(**dish.model_dump(), submenu_id=submenu_id)
-    db.add(db_dish)
-    db.commit()
-    db.refresh(db_dish)
+    session.add(db_dish)
+    session.commit()
+    session.refresh(db_dish)
     return db_dish
 
 
@@ -39,7 +47,7 @@ def read_dish(
 
     submenu = session.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
     if submenu is None:
-        raise HTTPException(status_code=404, detail="submenu not found or does not belong to the specified menu")
+        raise HTTPException(status_code=404, detail="submenu not found")
 
     dish = session.query(Dish).filter(Dish.id == dish_id).first()
     if dish is None:
@@ -52,8 +60,7 @@ def read_dish(
 def read_dishes(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
-        session: Session = Depends(get_session),
-        round_digits: int = 2
+        session: Session = Depends(get_session)
 ):
     menu = session.query(Menu).filter(Menu.id == menu_id).first()
     if menu is None:
@@ -84,7 +91,7 @@ def update_dish(
 
     submenu = session.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
     if submenu is None:
-        raise HTTPException(status_code=404, detail="submenu not found or does not belong to the specified menu")
+        raise HTTPException(status_code=404, detail="submenu not found")
 
     dish = session.query(Dish).filter(Dish.id == dish_id).first()
     if dish is None:
@@ -111,7 +118,7 @@ def delete_dish(
 
     submenu = session.query(Submenu).filter(Submenu.id == submenu_id, Submenu.menu_id == menu_id).first()
     if submenu is None:
-        raise HTTPException(status_code=404, detail="submenu not found or does not belong to the specified menu")
+        raise HTTPException(status_code=404, detail="submenu not found")
 
     dish = session.query(Dish).filter(Dish.id == dish_id).first()
     if dish is None:

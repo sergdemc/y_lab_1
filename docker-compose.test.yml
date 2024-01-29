@@ -1,34 +1,34 @@
 version: "3.3"
 services:
 
-    web-app:
+    web-app-test:
+        container_name: web-app-test
         build:
             context: .
         ports:
-            - "8000:8000"
-        volumes:
-            - ./app:/app
+            - "6000:8000"
         env_file:
-            - .env
+            -   .env.test
         environment:
-            - DB_HOST=postgres_db
+            - DB_HOST=test_db
             - DB_NAME=${DB_NAME}
             - DB_USER=${DB_USER}
             - DB_PASSWORD=${DB_PASSWORD}
 
         command: >
-            sh -c "python main.py"
+            sh -c "pytest --no-header -vv"
 
         depends_on:
-            postgres_db:
+            test_db:
                 condition: service_started
         restart: always
 
-
-    postgres_db:
-        container_name: postgres_db
+    test_db:
+        container_name: test_db
         image: postgres:15.1-alpine
         restart: always
+        env_file:
+            -   .env.test
         environment:
             - POSTGRES_DB=${DB_NAME}
             - POSTGRES_USER=${DB_USER}
