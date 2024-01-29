@@ -46,7 +46,7 @@ Stop the application by running
 make stop
 ```
 
-#### Complex ORM query is implemented [here](https://github.com/sergdemc/y_lab_1/blob/main/app/routers/menu_router.py#L14).
+#### Complex ORM query is implemented [here](https://github.com/sergdemc/y_lab_1/blob/main/app/routers/menu_router.py#L14-L23).
 #### API documentation is available at http://127.0.0.1:8000/docs.
 
 ## Tests
