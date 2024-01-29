@@ -1,4 +1,4 @@
-# Y_lab_1
+# Y_lab_1>2
 FastAPI CRUD application with PostgreSQL
 
 ## Installation
@@ -34,18 +34,24 @@ make install
 
 ## Usage
 
-Start the PostgreSQL database in the Docker container by running: 
-```bash
-make start_db
-```
 
-Start the application by running:
+Start the application and PostgreSQL database in the Docker containers by running:
 ```bash
-make server
+make start
 ```
 _By default, the server will be available at http://127.0.0.1:8000._
 
-Stop the database server:
+Stop the application by running
 ```bash
-make stop_db
+make stop
+```
+
+#### Complex ORM query is implemented [here](https://github.com/sergdemc/y_lab_1/blob/main/app/routers/menu_router.py#L14).
+#### API documentation is available at http://127.0.0.1:8000/docs.
+
+## Tests
+
+To run tests, use the command:
+```bash
+make test-in-docker
 ```
