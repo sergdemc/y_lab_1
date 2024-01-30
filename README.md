@@ -34,6 +34,7 @@ make install
 
 ## Usage
 
+For start the application you need to create `.env` file in the root directory of the project. You can use `.env.example` as a template.
 
 Start the application and PostgreSQL database in the Docker containers by running:
 ```bash
@@ -46,10 +47,13 @@ Stop the application by running
 make stop
 ```
 
-#### Complex ORM query is implemented [here](https://github.com/sergdemc/y_lab_1/blob/main/app/routers/menu_router.py#L14-L23).
-#### API documentation is available at http://127.0.0.1:8000/docs.
+Complex ORM query is available [here](https://github.com/sergdemc/y_lab_1/blob/main/app/routers/menu_router.py#L14-L23).
+
+API documentation is available at http://127.0.0.1:8000/docs.
 
 ## Tests
+
+The test postman scenario is available [here](https://github.com/sergdemc/y_lab_1/blob/main/app/tests/test_postman_scenario.py).
 
 To run tests, use the command:
 ```bash

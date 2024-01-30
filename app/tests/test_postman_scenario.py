@@ -3,7 +3,7 @@ from database.models import Menu
 from tests.conftest import EntityType, client, create_test_entity
 
 
-class TestMenu:
+class TestPostmanScenario:
 
     @pytest.fixture(scope='module', autouse=True)
     def prepare_test_data(self, get_session):
