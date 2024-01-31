@@ -105,9 +105,10 @@ def update_menu(
     if menu is None:
         raise HTTPException(status_code=404, detail="menu not found")
 
+    print(menu.title)
     for key, value in updated_menu.model_dump().items():
         setattr(menu, key, value)
-
+    print(menu.title)
     session.commit()
     session.refresh(menu)
     return menu

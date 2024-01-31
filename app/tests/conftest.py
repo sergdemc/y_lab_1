@@ -10,7 +10,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 engine_test = create_engine(POSTGRES_URL)
-session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine_test)
+session_factory = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine_test
+)
 
 Base.metadata.create_all(bind=engine_test)
 
@@ -37,7 +41,7 @@ def get_session():
         yield session
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(autouse=True)
 def clear_db(get_session):
     db = get_session
     yield db

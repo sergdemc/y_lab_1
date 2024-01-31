@@ -1,9 +1,18 @@
 import pytest
-from database.models import Menu
+from database.models import Dish, Menu, Submenu
 from tests.conftest import EntityType, client, create_test_entity
 
 
 class TestPostmanScenario:
+    @pytest.fixture(scope='module', autouse=True)
+    def clear_db(self, get_session):
+        db = get_session
+        yield db
+        db.query(Dish).delete()
+        db.query(Submenu).delete()
+        db.query(Menu).delete()
+        db.commit()
+        db.close()
 
     @pytest.fixture(scope='module', autouse=True)
     def prepare_test_data(self, get_session):
