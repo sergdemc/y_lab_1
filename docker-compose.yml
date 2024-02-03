@@ -22,6 +22,8 @@ services:
         depends_on:
             postgres_db:
                 condition: service_started
+            redis-cache:
+                condition: service_started
         restart: always
 
 
@@ -38,5 +40,18 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
-        ports:
-            - "5432:5432"
+#        ports:
+#            - "5432:5432"
+
+    redis-cache:
+        image: redis:7.0.11-alpine
+        container_name: redis-cache
+        hostname: redis-cache
+        restart: always
+        healthcheck:
+            test: [ "CMD-SHELL", "redis-cli ping" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+#        ports:
+#            - "6379:6379"

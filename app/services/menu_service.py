@@ -1,7 +1,9 @@
+import pickle
 import uuid
+import redis
 
 from database.models import Menu, Submenu, Dish
-from repositories import MenuORMRepository
+from repositories import MenuORMRepository, RedisCacheRepository
 from typing import List, Union
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -10,8 +12,15 @@ from schemas.menu_schemas import MenuWithDetailsScheme
 
 
 class MenuService:
-    def __init__(self, session: Session, repository=MenuORMRepository):
+    def __init__(
+            self,
+            session: Session,
+            redis_client: redis.Redis = None,
+            repository=MenuORMRepository,
+            cache_repository=RedisCacheRepository
+    ) -> None:
         self._menu_repository = repository(session)
+        self._cache_repository = cache_repository(redis_client)
 
     def _get_menu_details(self,
                           menu_id: uuid.UUID) -> tuple[Menu, int, int] | None:
@@ -42,33 +51,38 @@ class MenuService:
         menus_with_details = []
         menus = self._menu_repository.get_all()
         for menu in menus:
-            menu_details = self._get_menu_details(menu.id)
+            menu_details = self.get_menu_by_id(menu.id)
             if not menu_details:
                 continue
-            menu, submenu_count, dish_count = menu_details
 
-            menus_with_details.append(MenuWithDetailsScheme(
-                id=menu.id,
-                title=menu.title,
-                description=menu.description,
-                submenus_count=submenu_count,
-                dishes_count=dish_count
-            ))
+            menus_with_details.append(menu_details)
         return menus_with_details
 
-    def get_menu_by_id(self,
-                       menu_id: uuid.UUID) -> MenuWithDetailsScheme | None:
+    def get_menu_by_id(
+            self,
+            menu_id: uuid.UUID
+    ) -> MenuWithDetailsScheme | None:
+
+        if cached_menu := self._cache_repository.get(f'menu_{menu_id}'):
+            return MenuWithDetailsScheme(**pickle.loads(cached_menu))
+
         menu_details = self._get_menu_details(menu_id)
         if not menu_details:
             return None
+
         menu, submenu_count, dish_count = menu_details
-        return MenuWithDetailsScheme(
+        menu_with_details = MenuWithDetailsScheme(
             id=menu.id,
             title=menu.title,
             description=menu.description,
             submenus_count=submenu_count,
             dishes_count=dish_count
         )
+        self._cache_repository.set(
+            f'menu_{menu_id}',
+            pickle.dumps(menu_with_details.model_dump())
+        )
+        return menu_with_details
 
     def create_menu(self, menu_data: dict) -> Menu | None:
         new_menu = self._menu_repository.create(menu_data)
@@ -77,7 +91,24 @@ class MenuService:
     def update_menu(self, menu_id: uuid.UUID,
                     new_menu_data: dict) -> Menu | None:
         updated_menu = self._menu_repository.update(menu_id, new_menu_data)
+        if updated_menu:
+            self._cache_repository.delete(f'menu_{menu_id}')
         return updated_menu if updated_menu else None
 
     def delete_menu(self, menu_id: uuid.UUID) -> Menu:
-        return self._menu_repository.delete(menu_id)
+        submenus = self._menu_repository.get_by_id(menu_id).submenus
+        dishes = []
+        for submenu in submenus:
+            dishes.extend(submenu.dishes)
+
+        deleted_menu = self._menu_repository.delete(menu_id)
+        if deleted_menu:
+            self._cache_repository.delete(f'menu_{menu_id}')
+
+            for submenu in submenus:
+                self._cache_repository.delete(f'submenu_{submenu.id}')
+
+            for dish in dishes:
+                self._cache_repository.delete(f'dish_{dish.id}')
+
+        return deleted_menu if deleted_menu else None

@@ -5,7 +5,7 @@ from repositories.repositories_interface import IRepository
 
 
 class MenuORMRepository(IRepository):
-    def __init__(self, session=None):
+    def __init__(self, session=None) -> None:
         self.session = session
 
     def get_all(self) -> list[Menu]:

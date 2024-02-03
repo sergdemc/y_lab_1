@@ -21,6 +21,8 @@ services:
         depends_on:
             test_db:
                 condition: service_started
+            redis-cache:
+                condition: service_started
         restart: always
 
     test_db:
@@ -35,6 +37,17 @@ services:
             - POSTGRES_PASSWORD=${DB_PASSWORD}
         healthcheck:
             test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    redis-cache:
+        image: redis:7.0.11-alpine
+        container_name: redis-cache
+        hostname: redis-cache
+        restart: always
+        healthcheck:
+            test: [ "CMD-SHELL", "redis-cli ping" ]
             interval: 5s
             timeout: 5s
             retries: 5

@@ -6,11 +6,17 @@ from schemas.menu_schemas import (MenuScheme, MenuSchemeCreate,
                                   MenuWithDetailsScheme)
 from sqlalchemy.orm import Session
 from services.menu_service import MenuService
+from dependencies.redis import cache
 
 menu_router = APIRouter(prefix="/menus", tags=["Menu"])
 
 
-@menu_router.post("/", response_model=MenuScheme, status_code=201)
+@menu_router.post(
+    "/",
+    response_model=MenuScheme,
+    status_code=201,
+    name="create_menu"
+)
 def create_menu(
         menu: MenuSchemeCreate,
         session: Session = Depends(get_session)
@@ -21,12 +27,18 @@ def create_menu(
     return menu_service.create_menu(menu.model_dump())
 
 
-@menu_router.get("/{menu_id}", response_model=MenuWithDetailsScheme)
+@menu_router.get(
+    "/{menu_id}",
+    response_model=MenuWithDetailsScheme,
+    status_code=200,
+    name="read_menu"
+)
 def read_menu(
         menu_id: uuid.UUID,
-        session: Session = Depends(get_session)
-):
-    menu_service = MenuService(session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
+) -> MenuWithDetailsScheme:
+    menu_service = MenuService(session, redis_client)
     menu = menu_service.get_menu_by_id(menu_id)
     if not menu:
         raise HTTPException(status_code=404, detail="menu not found")
@@ -34,21 +46,33 @@ def read_menu(
     return menu
 
 
-@menu_router.get("/", response_model=list[MenuWithDetailsScheme])
+@menu_router.get(
+    "/",
+    response_model=list[MenuWithDetailsScheme],
+    status_code=200,
+    name="read_menus"
+)
 def read_menus(
-        session: Session = Depends(get_session)
-):
-    menu_service = MenuService(session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
+) -> list[MenuWithDetailsScheme]:
+    menu_service = MenuService(session, redis_client)
     return menu_service.get_all_menus()
 
 
-@menu_router.patch("/{menu_id}", response_model=MenuScheme)
+@menu_router.patch(
+    "/{menu_id}",
+    response_model=MenuScheme,
+    status_code=200,
+    name="update_menu"
+)
 def update_menu(
         menu_id: uuid.UUID,
         updated_menu: MenuSchemeCreate,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
 ):
-    menu_service = MenuService(session)
+    menu_service = MenuService(session, redis_client)
     menu = menu_service.update_menu(menu_id, updated_menu.model_dump())
     if not menu:
         raise HTTPException(status_code=404, detail="menu not found")
@@ -56,12 +80,18 @@ def update_menu(
     return menu
 
 
-@menu_router.delete("/{menu_id}", response_model=MenuScheme)
+@menu_router.delete(
+    "/{menu_id}",
+    response_model=MenuScheme,
+    status_code=200,
+    name="delete_menu"
+)
 def delete_menu(
         menu_id: uuid.UUID,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
 ):
-    menu_service = MenuService(session)
+    menu_service = MenuService(session, redis_client)
     menu = menu_service.delete_menu(menu_id)
     if not menu:
         raise HTTPException(status_code=404, detail="menu not found")

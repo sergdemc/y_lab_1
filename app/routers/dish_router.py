@@ -8,6 +8,7 @@ from database.db import get_session
 from services.menu_service import MenuService
 from services.submenu_service import SubmenuService
 from services.dish_service import DishService
+from dependencies.redis import cache
 
 dish_router = APIRouter(prefix="/menus", tags=["Dish"])
 
@@ -18,7 +19,8 @@ def create_dish(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         dish: DishSchemeCreate,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
 ):
     menu_service = MenuService(session)
     if not menu_service.is_menu_exists(menu_id):
@@ -28,7 +30,7 @@ def create_dish(
     if not submenu_service.is_submenu_exists(submenu_id):
         raise HTTPException(status_code=404, detail="submenu not found")
 
-    dish_service = DishService(session)
+    dish_service = DishService(session, redis_client)
     if dish_service.is_dish_exists(dish.title):
         raise HTTPException(status_code=400, detail="dish exists")
 
@@ -41,7 +43,8 @@ def read_dish(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         dish_id: uuid.UUID,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
 ):
     menu_service = MenuService(session)
     if not menu_service.is_menu_exists(menu_id):
@@ -51,7 +54,7 @@ def read_dish(
     if not submenu_service.is_submenu_exists_in_menu(menu_id, submenu_id):
         raise HTTPException(status_code=404, detail="submenu not found")
 
-    dish_service = DishService(session)
+    dish_service = DishService(session, redis_client)
     if not dish_service.is_dish_exists_in_submenu(submenu_id, dish_id):
         raise HTTPException(status_code=404, detail="dish not found")
 
@@ -63,8 +66,9 @@ def read_dish(
 def read_dishes(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
-        session: Session = Depends(get_session)
-):
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
+) -> list[DishScheme]:
     menu_service = MenuService(session)
     if not menu_service.is_menu_exists(menu_id):
         raise HTTPException(status_code=404, detail="menu not found")
@@ -74,7 +78,7 @@ def read_dishes(
         # raise HTTPException(status_code=404, detail="submenu not found")
         return []
 
-    dish_service = DishService(session)
+    dish_service = DishService(session, redis_client)
     return dish_service.get_all_dishes(submenu_id)
 
 
@@ -85,7 +89,8 @@ def update_dish(
         submenu_id: uuid.UUID,
         dish_id: uuid.UUID,
         updated_dish: DishSchemeCreate,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
 ):
     menu_service = MenuService(session)
     if not menu_service.is_menu_exists(menu_id):
@@ -95,7 +100,7 @@ def update_dish(
     if not submenu_service.is_submenu_exists_in_menu(menu_id, submenu_id):
         raise HTTPException(status_code=404, detail="submenu not found")
 
-    dish_service = DishService(session)
+    dish_service = DishService(session, redis_client)
     if not dish_service.is_dish_exists_in_submenu(submenu_id, dish_id):
         raise HTTPException(status_code=404, detail="dish not found")
 
@@ -108,7 +113,8 @@ def delete_dish(
         menu_id: uuid.UUID,
         submenu_id: uuid.UUID,
         dish_id: uuid.UUID,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
 ):
     menu_service = MenuService(session)
     if not menu_service.is_menu_exists(menu_id):
@@ -118,7 +124,7 @@ def delete_dish(
     if not submenu_service.is_submenu_exists_in_menu(menu_id, submenu_id):
         raise HTTPException(status_code=404, detail="submenu not found")
 
-    dish_service = DishService(session)
+    dish_service = DishService(session, redis_client)
     if not dish_service.is_dish_exists_in_submenu(submenu_id, dish_id):
         raise HTTPException(status_code=404, detail="dish not found")
 
