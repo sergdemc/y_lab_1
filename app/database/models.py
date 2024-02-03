@@ -37,7 +37,7 @@ class Submenu(Base):
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
 
-    menu_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("menus.id", ondelete="CASCADE"))
+    menu_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("menus.id", ondelete="CASCADE"), nullable=False)
     menu: Mapped["Menu"] = relationship("Menu", back_populates="submenus")
 
     dishes: Mapped[List["Dish"]] = relationship(back_populates="submenu")
@@ -53,5 +53,5 @@ class Dish(Base):
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
 
-    submenu_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("submenus.id", ondelete="CASCADE"))
+    submenu_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("submenus.id", ondelete="CASCADE"), nullable=False)
     submenu: Mapped["Submenu"] = relationship(back_populates="dishes")

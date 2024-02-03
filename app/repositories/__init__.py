@@ -1,0 +1,3 @@
+from repositories.orm_repositories.menu_repository import MenuORMRepository
+from repositories.orm_repositories.submenu_repository import SubmenuORMRepository
+from repositories.orm_repositories.dish_repository import DishORMRepository
