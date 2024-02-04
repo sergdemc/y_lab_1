@@ -26,11 +26,11 @@ def create_dish(
         session: Session = Depends(get_session),
         redis_client: cache = Depends(cache)
 ) -> Dish:
-    menu_service = MenuService(session)
+    menu_service = MenuService(session, redis_client)
     if not menu_service.is_menu_exists(menu_id):
         raise HTTPException(status_code=404, detail='menu not found')
 
-    submenu_service = SubmenuService(session)
+    submenu_service = SubmenuService(session, redis_client)
     if not submenu_service.is_submenu_exists(submenu_id):
         raise HTTPException(status_code=404, detail='submenu not found')
 
@@ -54,11 +54,11 @@ def read_dish(
         session: Session = Depends(get_session),
         redis_client: cache = Depends(cache)
 ) -> DishScheme:
-    menu_service = MenuService(session)
+    menu_service = MenuService(session, redis_client)
     if not menu_service.is_menu_exists(menu_id):
         raise HTTPException(status_code=404, detail='menu not found')
 
-    submenu_service = SubmenuService(session)
+    submenu_service = SubmenuService(session, redis_client)
     if not submenu_service.is_submenu_exists_in_menu(menu_id, submenu_id):
         raise HTTPException(status_code=404, detail='submenu not found')
 
@@ -81,11 +81,11 @@ def read_dishes(
         session: Session = Depends(get_session),
         redis_client: cache = Depends(cache)
 ) -> list[DishScheme]:
-    menu_service = MenuService(session)
+    menu_service = MenuService(session, redis_client)
     if not menu_service.is_menu_exists(menu_id):
         raise HTTPException(status_code=404, detail='menu not found')
 
-    submenu_service = SubmenuService(session)
+    submenu_service = SubmenuService(session, redis_client)
     if not submenu_service.is_submenu_exists_in_menu(menu_id, submenu_id):
         # raise HTTPException(status_code=404, detail="submenu not found")
         return []
@@ -108,11 +108,11 @@ def update_dish(
         session: Session = Depends(get_session),
         redis_client: cache = Depends(cache)
 ) -> Dish:
-    menu_service = MenuService(session)
+    menu_service = MenuService(session, redis_client)
     if not menu_service.is_menu_exists(menu_id):
         raise HTTPException(status_code=404, detail='menu not found')
 
-    submenu_service = SubmenuService(session)
+    submenu_service = SubmenuService(session, redis_client)
     if not submenu_service.is_submenu_exists_in_menu(menu_id, submenu_id):
         raise HTTPException(status_code=404, detail='submenu not found')
 
@@ -136,11 +136,11 @@ def delete_dish(
         session: Session = Depends(get_session),
         redis_client: cache = Depends(cache)
 ) -> Dish:
-    menu_service = MenuService(session)
+    menu_service = MenuService(session, redis_client)
     if not menu_service.is_menu_exists(menu_id):
         raise HTTPException(status_code=404, detail='menu not found')
 
-    submenu_service = SubmenuService(session)
+    submenu_service = SubmenuService(session, redis_client)
     if not submenu_service.is_submenu_exists_in_menu(menu_id, submenu_id):
         raise HTTPException(status_code=404, detail='submenu not found')
 

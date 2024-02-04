@@ -19,9 +19,10 @@ menu_router = APIRouter(prefix='/menus', tags=['Menu'])
 )
 def create_menu(
         menu: MenuSchemeCreate,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        redis_client: cache = Depends(cache)
 ) -> Menu:
-    menu_service = MenuService(session)
+    menu_service = MenuService(session, redis_client)
     if menu_service.is_menu_exists(menu.title):
         raise HTTPException(status_code=400, detail='menu exists')
     return menu_service.create_menu(menu.model_dump())
