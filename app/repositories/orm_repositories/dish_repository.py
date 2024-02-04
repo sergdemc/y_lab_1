@@ -1,13 +1,14 @@
 import uuid
+
 from database.models import Dish
 from repositories.repositories_interface import IRepository
 
 
 class DishORMRepository(IRepository):
-    def __init__(self, session=None):
+    def __init__(self, session=None) -> None:
         self.session = session
 
-    def get_all(self, submenu_id: uuid.UUID = None) -> list[Dish]:
+    def get_all(self, submenu_id: uuid.UUID) -> list[Dish]:
         try:
             return (self.session.query(Dish)
                     .filter(Dish.submenu_id == submenu_id).all())
@@ -29,7 +30,7 @@ class DishORMRepository(IRepository):
             print(e)
             return None
 
-    def create(self, data: dict, submenu_id: uuid.UUID = None) -> Dish | None:
+    def create(self, data: dict, submenu_id: uuid.UUID) -> Dish | None:
         try:
             dish = Dish(**data, submenu_id=submenu_id)
             self.session.add(dish)
@@ -53,7 +54,7 @@ class DishORMRepository(IRepository):
             print(e)
             return None
 
-    def delete(self, dish_id):
+    def delete(self, dish_id) -> Dish | None:
         try:
             dish = self.session.query(Dish).filter(Dish.id == dish_id).first()
             self.session.delete(dish)

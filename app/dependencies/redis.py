@@ -1,6 +1,5 @@
 import redis
-
-from config import REDIS_SERVER, REDIS_PORT
+from config import REDIS_PORT, REDIS_SERVER
 
 
 def cache():

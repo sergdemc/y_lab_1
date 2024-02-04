@@ -1,29 +1,29 @@
 import pickle
 import uuid
-import redis
 
-from database.models import Menu, Submenu, Dish
+import redis
+from database.models import Dish, Menu, Submenu
 from repositories import MenuORMRepository, RedisCacheRepository
-from typing import List, Union
+from schemas.menu_schemas import MenuWithDetailsScheme
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-
-from schemas.menu_schemas import MenuWithDetailsScheme
 
 
 class MenuService:
     def __init__(
             self,
             session: Session,
-            redis_client: redis.Redis = None,
+            redis_client: redis.Redis,
             repository=MenuORMRepository,
             cache_repository=RedisCacheRepository
     ) -> None:
         self._menu_repository = repository(session)
         self._cache_repository = cache_repository(redis_client)
 
-    def _get_menu_details(self,
-                          menu_id: uuid.UUID) -> tuple[Menu, int, int] | None:
+    def _get_menu_details(
+            self,
+            menu_id: uuid.UUID
+    ) -> tuple[Menu, int, int] | None:
         try:
             menu_details = (
                 self._menu_repository.session.query(
@@ -42,12 +42,15 @@ class MenuService:
             print(e)
             return None
 
-    def is_menu_exists(self, unic_field: Union[str, uuid.UUID]) -> bool:
+    def is_menu_exists(
+            self,
+            unic_field: str | uuid.UUID
+    ) -> bool:
         if isinstance(unic_field, uuid.UUID):
             return self._menu_repository.get_by_id(unic_field) is not None
         return self._menu_repository.get_by_title(unic_field) is not None
 
-    def get_all_menus(self) -> List[MenuWithDetailsScheme]:
+    def get_all_menus(self) -> list[MenuWithDetailsScheme]:
         menus_with_details = []
         menus = self._menu_repository.get_all()
         for menu in menus:

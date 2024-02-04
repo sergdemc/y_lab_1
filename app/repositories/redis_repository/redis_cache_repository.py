@@ -1,6 +1,6 @@
 import pickle
+
 import redis
-import uuid
 
 
 class RedisCacheRepository:

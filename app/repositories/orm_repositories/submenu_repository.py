@@ -5,12 +5,13 @@ from repositories.repositories_interface import IRepository
 
 
 class SubmenuORMRepository(IRepository):
-    def __init__(self, session=None):
+    def __init__(self, session=None) -> None:
         self.session = session
 
-    def get_all(self, menu_id: uuid.UUID = None) -> list[Submenu]:
+    def get_all(self, menu_id: uuid.UUID) -> list[Submenu]:
         try:
-            return self.session.query(Submenu).filter(Submenu.menu_id == menu_id).all()
+            return (self.session.query(Submenu)
+                    .filter(Submenu.menu_id == menu_id).all())
         except Exception as e:
             print(e)
             return []
@@ -31,7 +32,7 @@ class SubmenuORMRepository(IRepository):
             print(e)
             return None
 
-    def create(self, data: dict, menu_id: uuid.UUID = None) -> Submenu | None:
+    def create(self, data: dict, menu_id: uuid.UUID) -> Submenu | None:
         try:
             submenu = Submenu(**data, menu_id=menu_id)
             self.session.add(submenu)
