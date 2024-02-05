@@ -5,6 +5,7 @@ import pytest
 from config import POSTGRES_URL
 from database.db import Base, get_session
 from database.models import Dish, Menu, Submenu
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from main import app
 from sqlalchemy import create_engine
@@ -32,7 +33,13 @@ client = TestClient(app)
 
 
 @pytest.fixture
+def get_app() -> FastAPI:
+    return app
+
+
+@pytest.fixture
 def base_url() -> str:
+
     return 'http://localhost:8000/api/v1'
 
 

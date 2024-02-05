@@ -8,9 +8,7 @@ from tests.conftest import EntityType, client, create_test_entity
 
 class TestDish:
     @pytest.fixture
-    def prepare_test_data(
-            self, get_db
-    ) -> Generator[tuple[Session, Menu, Menu, Dish, Dish], None, None]:
+    def prepare_test_data(self, get_db) -> Generator[tuple[Session, Menu, Menu, Dish, Dish], None, None]:
         session = get_db
         menu = create_test_entity(
             EntityType.MENU,
@@ -41,7 +39,7 @@ class TestDish:
         session.query(Menu).delete()
         session.commit()
 
-    def test_read_empty_dishes(self, base_url) -> None:
+    def test_read_empty_dishes(self, get_app) -> None:
         menu = create_test_entity(
             EntityType.MENU,
             title='menu1',
@@ -56,12 +54,12 @@ class TestDish:
         assert submenu.menu_id == menu.id
 
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes'
+            url=get_app.url_path_for('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert len(response.json()) == 0
 
-    def test_create_dish(self, base_url, get_db: Session) -> None:
+    def test_create_dish(self, get_app, get_db) -> None:
         menu = create_test_entity(
             EntityType.MENU,
             title='menu1',
@@ -79,7 +77,7 @@ class TestDish:
             'price': '100'
         }
         response = client.post(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes',
+            url=get_app.url_path_for('create_dish', menu_id=menu.id, submenu_id=submenu.id),
             json=dish_data
         )
         assert response.status_code == 201
@@ -93,7 +91,7 @@ class TestDish:
         assert db_dish.description == dish_data['description']
         assert db_dish.price == dish_data['price']
 
-    def test_create_dish_with_existing_title(self, base_url, prepare_test_data) -> None:
+    def test_create_dish_with_existing_title(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, dish1, *_ = prepare_test_data
         dish_data = {
             'title': dish1.title,
@@ -101,42 +99,42 @@ class TestDish:
             'price': '150'
         }
         response = client.post(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes',
+            url=get_app.url_path_for('create_dish', menu_id=menu.id, submenu_id=submenu.id),
             json=dish_data
         )
         assert response.status_code == 400
         assert response.json()['detail'] == 'dish exists'
 
-    def test_read_dish(self, base_url, prepare_test_data) -> None:
+    def test_read_dish(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes/{dish.id}'
+            url=get_app.url_path_for('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(dish.id)
         assert response.json()['title'] == dish.title
 
-    def test_read_dish_with_invalid_id(self, base_url, prepare_test_data) -> None:
+    def test_read_dish_with_invalid_id(self, get_app, prepare_test_data) -> None:
         invalid_id = 'c11907df-84fe-481c-94fa-fdc9fcab34b0'
         session, menu, submenu, dish, *_ = prepare_test_data
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes/{invalid_id}'
+            url=get_app.url_path_for('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=invalid_id)
         )
         assert response.status_code == 404
         assert response.json()['detail'] == 'dish not found'
 
-    def test_read_dish_with_not_uuid_id(self, base_url, prepare_test_data) -> None:
+    def test_read_dish_with_not_uuid_id(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes/123'
+            url=get_app.url_path_for('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id='123')
         )
         assert response.status_code == 422
         assert response.json()['detail'][0]['type'] == 'uuid_parsing'
 
-    def test_read_dishes(self, base_url, prepare_test_data) -> None:
+    def test_read_dishes(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, dish1, dish2 = prepare_test_data
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes'
+            url=get_app.url_path_for('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert len(response.json()) == 2
@@ -150,7 +148,7 @@ class TestDish:
         assert response.json()[1]['description'] == dish2.description
         assert response.json()[1]['price'] == dish2.price
 
-    def test_update_dish(self, base_url, prepare_test_data) -> None:
+    def test_update_dish(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
         dish_data = {
             'title': 'updated dish1',
@@ -158,7 +156,7 @@ class TestDish:
             'price': '200'
         }
         response = client.patch(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes/{dish.id}',
+            url=get_app.url_path_for('update_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish.id),
             json=dish_data
         )
         assert response.status_code == 200
@@ -172,7 +170,7 @@ class TestDish:
         assert db_dish.description == dish_data['description']
         assert db_dish.price == dish_data['price']
 
-    def test_update_dish_with_invalid_id(self, base_url, prepare_test_data) -> None:
+    def test_update_dish_with_invalid_id(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
         invalid_id = 'c11907df-84fe-481c-94fa-fdc9fcab34b0'
         dish_data = {
@@ -181,13 +179,13 @@ class TestDish:
             'price': '200'
         }
         response = client.patch(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes/{invalid_id}',
+            url=get_app.url_path_for('update_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=invalid_id),
             json=dish_data
         )
         assert response.status_code == 404
         assert response.json()['detail'] == 'dish not found'
 
-    def test_update_dish_with_invalid_menu_id(self, base_url, prepare_test_data) -> None:
+    def test_update_dish_with_invalid_menu_id(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
         invalid_id = 'c11907df-84fe-481c-94fa-fdc9fcab34b0'
         dish_data = {
@@ -196,13 +194,13 @@ class TestDish:
             'price': '200'
         }
         response = client.patch(
-            f'{base_url}/menus/{invalid_id}/submenus/{submenu.id}/dishes/{dish.id}',
+            url=get_app.url_path_for('update_dish', menu_id=invalid_id, submenu_id=submenu.id, dish_id=dish.id),
             json=dish_data
         )
         assert response.status_code == 404
         assert response.json()['detail'] == 'menu not found'
 
-    def test_update_dish_with_invalid_submenu_id(self, base_url, prepare_test_data) -> None:
+    def test_update_dish_with_invalid_submenu_id(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
         invalid_id = 'c11907df-84fe-481c-94fa-fdc9fcab34b0'
         dish_data = {
@@ -211,28 +209,28 @@ class TestDish:
             'price': '200'
         }
         response = client.patch(
-            f'{base_url}/menus/{menu.id}/submenus/{invalid_id}/dishes/{dish.id}',
+            url=get_app.url_path_for('update_dish', menu_id=menu.id, submenu_id=invalid_id, dish_id=dish.id),
             json=dish_data
         )
         assert response.status_code == 404
         assert response.json()['detail'] == 'submenu not found'
 
-    def test_delete_dish(self, base_url, prepare_test_data) -> None:
+    def test_delete_dish(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, dish1, dish2 = prepare_test_data
         response = client.delete(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes/{dish1.id}'
+            url=get_app.url_path_for('delete_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish1.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(dish1.id)
 
         response = client.delete(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes/{dish2.id}'
+            url=get_app.url_path_for('delete_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish2.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(dish2.id)
 
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes'
+            url=get_app.url_path_for('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json() == []

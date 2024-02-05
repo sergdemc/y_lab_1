@@ -18,9 +18,7 @@ class TestPostmanScenario:
         db.close()
 
     @pytest.fixture(scope='module', autouse=True)
-    def prepare_test_data(
-            self, get_db
-    ) -> Generator[tuple[Session, Menu, Submenu, Dish, Dish], None, None]:
+    def prepare_test_data(self, get_db) -> Generator[tuple[Session, Menu, Submenu, Dish, Dish], None, None]:
 
         session = get_db
         menu = create_test_entity(
@@ -52,55 +50,55 @@ class TestPostmanScenario:
         session.query(Menu).delete()
         session.commit()
 
-    def test_read_menu(self, base_url, prepare_test_data) -> None:
+    def test_read_menu(self, get_app, prepare_test_data) -> None:
         session, menu, *_ = prepare_test_data
-        response = client.get(f'{base_url}/menus/{menu.id}')
+        response = client.get(url=get_app.url_path_for('read_menu', menu_id=menu.id))
         assert response.status_code == 200
         assert response.json()['id'] == str(menu.id)
         assert response.json()['submenus_count'] == 1
         assert response.json()['dishes_count'] == 2
 
-    def test_read_submenu(self, base_url, prepare_test_data) -> None:
+    def test_read_submenu(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}'
+            url=get_app.url_path_for('read_submenu', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(submenu.id)
         assert response.json()['dishes_count'] == 2
 
-    def test_delete_submenu(self, base_url, prepare_test_data) -> None:
+    def test_delete_submenu(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.delete(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}'
+            url=get_app.url_path_for('delete_submenu', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(submenu.id)
 
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus'
+            url=get_app.url_path_for('read_submenus', menu_id=menu.id)
         )
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_read_dishes(self, base_url, prepare_test_data) -> None:
+    def test_read_dishes(self, get_app, prepare_test_data) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.get(
-            f'{base_url}/menus/{menu.id}/submenus/{submenu.id}/dishes'
+            url=get_app.url_path_for('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_delete_menu(self, base_url, prepare_test_data) -> None:
+    def test_delete_menu(self, get_app, prepare_test_data) -> None:
         session, menu, *_ = prepare_test_data
         response = client.delete(
-            f'{base_url}/menus/{menu.id}'
+            url=get_app.url_path_for('delete_menu', menu_id=menu.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(menu.id)
 
         response = client.get(
-            f'{base_url}/menus'
+            url=get_app.url_path_for('read_menus')
         )
         assert response.status_code == 200
         assert response.json() == []

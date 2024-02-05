@@ -1,5 +1,5 @@
-# Y_lab_1>2
-FastAPI CRUD application with PostgreSQL
+# Y_lab_1>2>3
+FastAPI CRUD application with PostgreSQL, Redis, and Docker.
 
 ## Installation
 
@@ -50,6 +50,8 @@ make stop
 Complex ORM query is available [here](https://github.com/sergdemc/y_lab_1/blob/main/app/routers/menu_router.py#L14-L23).
 
 API documentation is available at http://127.0.0.1:8000/docs.
+
+OpenAPI specification is available [here](https://github.com/sergdemc/y_lab_1/blob/main/openapi.yaml).
 
 ## Tests
 
