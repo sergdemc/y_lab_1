@@ -2,13 +2,14 @@ import uuid
 
 from database.models import Menu
 from repositories.repositories_interface import IRepository
+from sqlalchemy.orm.session import Session
 
 
 class MenuORMRepository(IRepository):
-    def __init__(self, session=None) -> None:
+    def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_all(self) -> list[Menu]:
+    def get_all(self, item_id: uuid.UUID | None) -> list[type[Menu]]:
         try:
             return self.session.query(Menu).all()
         except Exception as e:
@@ -29,7 +30,7 @@ class MenuORMRepository(IRepository):
             print(e)
             return None
 
-    def create(self, data: dict) -> Menu | None:
+    def create(self, data: dict, item_id: uuid.UUID | None) -> Menu | None:
         try:
             menu = Menu(**data)
             self.session.add(menu)

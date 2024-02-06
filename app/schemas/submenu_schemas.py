@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class SubmenuSchemeCreate(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config: ConfigDict = ConfigDict(from_attributes=True)
     title: str
     description: str
 
@@ -13,7 +13,7 @@ class SubmenuScheme(SubmenuSchemeCreate):
     id: uuid.UUID
 
     class Config:
-        orm_mode = True
+        orm_mode: bool = True
 
 
 class SubmenuWithDishCountScheme(BaseModel):

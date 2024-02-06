@@ -21,7 +21,7 @@ session_factory = sessionmaker(
 Base.metadata.create_all(bind=engine_test)
 
 
-def override_get_session():
+def override_get_session() -> Generator[Session, None, None]:
     with session_factory() as session:
         yield session
 
@@ -29,7 +29,7 @@ def override_get_session():
 app.dependency_overrides[get_session] = override_get_session
 
 
-client = TestClient(app)
+client: TestClient = TestClient(app)
 
 
 @pytest.fixture
@@ -39,7 +39,6 @@ def get_app() -> FastAPI:
 
 @pytest.fixture
 def base_url() -> str:
-
     return 'http://localhost:8000/api/v1'
 
 
@@ -66,7 +65,7 @@ class EntityType(Enum):
     DISH = Dish
 
 
-def create_test_entity(model: EntityType, **data: str) -> EntityType:
+def create_test_entity(model: EntityType, **data: str) -> Menu | Submenu | Dish:
     session = session_factory()
     model_class = model.value
     entity = model_class(**data)

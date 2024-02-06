@@ -14,6 +14,7 @@ menu_router = APIRouter(prefix='/menus', tags=['Menu'])
 @menu_router.post(
     '/',
     response_model=MenuScheme,
+    responses={400: {'detail': 'menu exists'}},
     status_code=201,
     name='create_menu'
 )
@@ -31,6 +32,7 @@ def create_menu(
 @menu_router.get(
     '/{menu_id}',
     response_model=MenuWithDetailsScheme,
+    responses={404: {'detail': 'menu not found'}},
     status_code=200,
     name='read_menu'
 )
@@ -64,6 +66,7 @@ def read_menus(
 @menu_router.patch(
     '/{menu_id}',
     response_model=MenuScheme,
+    responses={404: {'': 'menu not found'}},
     status_code=200,
     name='update_menu'
 )
@@ -84,6 +87,7 @@ def update_menu(
 @menu_router.delete(
     '/{menu_id}',
     response_model=MenuScheme,
+    responses={404: {'detail': 'menu not found'}},
     status_code=200,
     name='delete_menu'
 )

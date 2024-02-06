@@ -2,13 +2,14 @@ from typing import Generator
 
 import pytest
 from database.models import Dish, Menu, Submenu
+from fastapi import FastAPI
 from sqlalchemy.orm import Session
 from tests.conftest import EntityType, client, create_test_entity
 
 
 class TestPostmanScenario:
     @pytest.fixture(scope='module', autouse=True)
-    def clear_db(self, get_db) -> Generator[Session, None, None]:
+    def clear_db(self, get_db: Session) -> Generator[Session, None, None]:
         db = get_db
         yield db
         db.query(Dish).delete()
@@ -18,28 +19,28 @@ class TestPostmanScenario:
         db.close()
 
     @pytest.fixture(scope='module', autouse=True)
-    def prepare_test_data(self, get_db) -> Generator[tuple[Session, Menu, Submenu, Dish, Dish], None, None]:
+    def prepare_test_data(self, get_db: Session) -> Generator[tuple[Session, Menu, Submenu, Dish, Dish], None, None]:
 
         session = get_db
-        menu = create_test_entity(
+        menu: Menu = create_test_entity(
             EntityType.MENU,
             title='menu1',
             description='description menu1'
         )
-        submenu = create_test_entity(
+        submenu: Submenu = create_test_entity(
             EntityType.SUBMENU,
             title='submenu1',
             description='description submenu1',
             menu_id=menu.id
         )
-        dish_1 = create_test_entity(
+        dish_1: Dish = create_test_entity(
             EntityType.DISH,
             title='dish1',
             description='description dish1',
             price='100',
             submenu_id=submenu.id
         )
-        dish_2 = create_test_entity(
+        dish_2: Dish = create_test_entity(
             EntityType.DISH,
             title='dish2',
             description='description dish2',
@@ -50,7 +51,7 @@ class TestPostmanScenario:
         session.query(Menu).delete()
         session.commit()
 
-    def test_read_menu(self, get_app, prepare_test_data) -> None:
+    def test_read_menu(self, get_app: FastAPI, prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]) -> None:
         session, menu, *_ = prepare_test_data
         response = client.get(url=get_app.url_path_for('read_menu', menu_id=menu.id))
         assert response.status_code == 200
@@ -58,7 +59,7 @@ class TestPostmanScenario:
         assert response.json()['submenus_count'] == 1
         assert response.json()['dishes_count'] == 2
 
-    def test_read_submenu(self, get_app, prepare_test_data) -> None:
+    def test_read_submenu(self, get_app: FastAPI, prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.get(
             url=get_app.url_path_for('read_submenu', menu_id=menu.id, submenu_id=submenu.id)
@@ -67,7 +68,11 @@ class TestPostmanScenario:
         assert response.json()['id'] == str(submenu.id)
         assert response.json()['dishes_count'] == 2
 
-    def test_delete_submenu(self, get_app, prepare_test_data) -> None:
+    def test_delete_submenu(
+            self,
+            get_app: FastAPI,
+            prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]
+    ) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.delete(
             url=get_app.url_path_for('delete_submenu', menu_id=menu.id, submenu_id=submenu.id)
@@ -81,7 +86,7 @@ class TestPostmanScenario:
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_read_dishes(self, get_app, prepare_test_data) -> None:
+    def test_read_dishes(self, get_app: FastAPI, prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.get(
             url=get_app.url_path_for('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
@@ -89,7 +94,7 @@ class TestPostmanScenario:
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_delete_menu(self, get_app, prepare_test_data) -> None:
+    def test_delete_menu(self, get_app: FastAPI, prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]) -> None:
         session, menu, *_ = prepare_test_data
         response = client.delete(
             url=get_app.url_path_for('delete_menu', menu_id=menu.id)

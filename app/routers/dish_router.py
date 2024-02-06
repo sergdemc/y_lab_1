@@ -16,6 +16,7 @@ dish_router = APIRouter(prefix='/menus', tags=['Dish'])
 @dish_router.post(
     '/{menu_id}/submenus/{submenu_id}/dishes',
     response_model=DishScheme,
+    responses={400: {'detail': 'dish exists'}, 404: {'detail': 'menu or submenu not found'}},
     name='create_dish',
     status_code=201,
 )
@@ -44,6 +45,7 @@ def create_dish(
 @dish_router.get(
     '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     response_model=DishScheme,
+    responses={404: {'detail': 'dish not found'}},
     name='read_dish',
     status_code=200,
 )
@@ -72,6 +74,7 @@ def read_dish(
 @dish_router.get(
     '/{menu_id}/submenus/{submenu_id}/dishes',
     response_model=list[DishScheme],
+    responses={404: {'detail': 'menu not found'}},
     name='read_dishes',
     status_code=200
 )
@@ -97,6 +100,7 @@ def read_dishes(
 @dish_router.patch(
     '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     response_model=DishScheme,
+    responses={404: {'detail': 'dish not found'}},
     name='update_dish',
     status_code=200
 )
@@ -126,6 +130,7 @@ def update_dish(
 @dish_router.delete(
     '/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     response_model=DishScheme,
+    responses={404: {'detail': 'dish not found'}},
     name='delete_dish',
     status_code=200
 )

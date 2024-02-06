@@ -19,6 +19,7 @@ submenu_router = APIRouter(prefix='/menus', tags=['Submenu'])
 @submenu_router.post(
     '/{menu_id}/submenus',
     response_model=SubmenuScheme,
+    responses={400: {'detail': 'submenu exists'}, 404: {'detail': 'menu not found'}},
     name='create_submenu',
     status_code=201
 )
@@ -42,6 +43,7 @@ def create_submenu(
 @submenu_router.get(
     '/{menu_id}/submenus/{submenu_id}',
     response_model=SubmenuWithDishCountScheme,
+    responses={404: {'detail': 'submenu not found'}},
     name='read_submenu',
     status_code=200
 )
@@ -69,6 +71,7 @@ def read_submenu(
 @submenu_router.get(
     '/{menu_id}/submenus',
     response_model=list[SubmenuWithDishCountScheme],
+    responses={404: {'detail': 'menu not found'}},
     name='read_submenus',
     status_code=200
 )
@@ -88,6 +91,7 @@ def read_submenus(
 @submenu_router.patch(
     '/{menu_id}/submenus/{submenu_id}',
     response_model=SubmenuScheme,
+    responses={404: {'detail': 'submenu not found'}},
     name='update_submenu',
     status_code=200
 )
@@ -112,6 +116,7 @@ def update_submenu(
 @submenu_router.delete(
     '/{menu_id}/submenus/{submenu_id}',
     response_model=SubmenuScheme,
+    responses={404: {'detail': 'submenu not found'}},
     name='delete_submenu',
     status_code=200
 )

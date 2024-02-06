@@ -38,6 +38,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MenuScheme'
+        '400':
+          description: Bad Request
+          detail: menu exists
         '422':
           description: Validation Error
           content:
@@ -65,6 +68,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MenuWithDetailsScheme'
+        '404':
+          detail: menu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -97,6 +103,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MenuScheme'
+        '404':
+          detail: menu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -123,6 +132,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MenuScheme'
+        '404':
+          detail: menu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -156,6 +168,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubmenuScheme'
+        '400':
+          detail: submenu exists
+          description: Bad Request
+        '404':
+          detail: menu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -185,6 +203,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/SubmenuWithDishCountScheme'
                 title: Response Read Submenus Api V1 Menus  Menu Id  Submenus Get
+        '404':
+          detail: menu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -219,6 +240,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubmenuWithDishCountScheme'
+        '404':
+          detail: submenu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -258,6 +282,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubmenuScheme'
+        '404':
+          detail: submenu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -291,6 +318,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubmenuScheme'
+        '404':
+          detail: submenu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -331,6 +361,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DishScheme'
+        '400':
+          detail: dish exists
+          description: Bad Request
+        '404':
+          detail: menu or submenu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -369,6 +405,9 @@ paths:
                 title: >-
                   Response Read Dishes Api V1 Menus  Menu Id  Submenus  Submenu
                   Id  Dishes Get
+        '404':
+          detail: menu not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -411,6 +450,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DishScheme'
+        '404':
+          detail: dish not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -458,6 +500,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DishScheme'
+        '404':
+          detail: dish not found
+          description: Not Found
         '422':
           description: Validation Error
           content:
@@ -499,6 +544,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DishScheme'
+        '404':
+          detail: dish not found
+          description: Not Found
         '422':
           description: Validation Error
           content:

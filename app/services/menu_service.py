@@ -17,15 +17,12 @@ class MenuService:
             repository=MenuORMRepository,
             cache_repository=RedisCacheRepository
     ) -> None:
-        self._menu_repository = repository(session)
-        self._cache_repository = cache_repository(redis_client)
+        self._menu_repository: MenuORMRepository = repository(session)
+        self._cache_repository: RedisCacheRepository = cache_repository(redis_client)
 
-    def _get_menu_details(
-            self,
-            menu_id: uuid.UUID
-    ) -> tuple[Menu, int, int] | None:
+    def _get_menu_details(self, menu_id: uuid.UUID) -> tuple[Menu, int, int] | None:
         try:
-            menu_details = (
+            menu_details: tuple[Menu, int, int] = (
                 self._menu_repository.session.query(
                     Menu,
                     func.count(func.distinct(Submenu.id)),
@@ -42,39 +39,34 @@ class MenuService:
             print(e)
             return None
 
-    def is_menu_exists(
-            self,
-            unic_field: str | uuid.UUID
-    ) -> bool:
+    def is_menu_exists(self, unic_field: str | uuid.UUID) -> bool:
         if isinstance(unic_field, uuid.UUID):
             return self._menu_repository.get_by_id(unic_field) is not None
         return self._menu_repository.get_by_title(unic_field) is not None
 
     def get_all_menus(self) -> list[MenuWithDetailsScheme]:
-        menus_with_details = []
-        menus = self._menu_repository.get_all()
+        menus_with_details: list = []
+        menus: list[Menu] = self._menu_repository.get_all(item_id=None)
         for menu in menus:
-            menu_details = self.get_menu_by_id(menu.id)
+            menu_details: MenuWithDetailsScheme = self.get_menu_by_id(menu.id)
             if not menu_details:
                 continue
 
             menus_with_details.append(menu_details)
         return menus_with_details
 
-    def get_menu_by_id(
-            self,
-            menu_id: uuid.UUID
-    ) -> MenuWithDetailsScheme | None:
+    def get_menu_by_id(self, menu_id: uuid.UUID) -> MenuWithDetailsScheme | None:
+        cached_menu: object | None
 
         if cached_menu := self._cache_repository.get(f'menu_{menu_id}'):
             return MenuWithDetailsScheme(**pickle.loads(cached_menu))
 
-        menu_details = self._get_menu_details(menu_id)
+        menu_details: tuple[Menu, int, int] | None = self._get_menu_details(menu_id)
         if not menu_details:
             return None
 
         menu, submenu_count, dish_count = menu_details
-        menu_with_details = MenuWithDetailsScheme(
+        menu_with_details: MenuWithDetailsScheme = MenuWithDetailsScheme(
             id=menu.id,
             title=menu.title,
             description=menu.description,
@@ -88,23 +80,22 @@ class MenuService:
         return menu_with_details
 
     def create_menu(self, menu_data: dict) -> Menu | None:
-        new_menu = self._menu_repository.create(menu_data)
+        new_menu: Menu = self._menu_repository.create(menu_data, item_id=None)
         return new_menu if new_menu else None
 
-    def update_menu(self, menu_id: uuid.UUID,
-                    new_menu_data: dict) -> Menu | None:
-        updated_menu = self._menu_repository.update(menu_id, new_menu_data)
+    def update_menu(self, menu_id: uuid.UUID, new_menu_data: dict) -> Menu | None:
+        updated_menu: Menu | None = self._menu_repository.update(menu_id, new_menu_data)
         if updated_menu:
             self._cache_repository.delete(f'menu_{menu_id}')
         return updated_menu if updated_menu else None
 
     def delete_menu(self, menu_id: uuid.UUID) -> Menu:
-        submenus = self._menu_repository.get_by_id(menu_id).submenus
-        dishes = []
+        submenus: list[Submenu] = self._menu_repository.get_by_id(menu_id).submenus
+        dishes: list = []
         for submenu in submenus:
             dishes.extend(submenu.dishes)
 
-        deleted_menu = self._menu_repository.delete(menu_id)
+        deleted_menu: Menu = self._menu_repository.delete(menu_id)
         if deleted_menu:
             self._cache_repository.delete(f'menu_{menu_id}')
 

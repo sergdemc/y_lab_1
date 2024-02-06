@@ -2,11 +2,12 @@ from typing import Generator
 
 from config import POSTGRES_URL
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.orm.session import Session
 
-engine = create_engine(POSTGRES_URL)
-session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine: Engine = create_engine(POSTGRES_URL)
+session_factory: sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class Base(DeclarativeBase):

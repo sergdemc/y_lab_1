@@ -12,7 +12,7 @@ class MenuScheme(MenuSchemeCreate):
     id: uuid.UUID
 
     class Config:
-        orm_mode = True
+        orm_mode: bool = True
 
 
 class MenuWithDetailsScheme(BaseModel):

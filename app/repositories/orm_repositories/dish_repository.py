@@ -54,7 +54,7 @@ class DishORMRepository(IRepository):
             print(e)
             return None
 
-    def delete(self, dish_id) -> Dish | None:
+    def delete(self, dish_id: uuid.UUID) -> Dish | None:
         try:
             dish = self.session.query(Dish).filter(Dish.id == dish_id).first()
             self.session.delete(dish)

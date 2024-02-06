@@ -17,14 +17,12 @@ class SubmenuService:
             repository=SubmenuORMRepository,
             cache_repository=RedisCacheRepository
     ) -> None:
-        self._submenu_repository = repository(session)
-        self._cache_repository = cache_repository(redis_client)
+        self._submenu_repository: SubmenuORMRepository = repository(session)
+        self._cache_repository: RedisCacheRepository = cache_repository(redis_client)
 
-    def _get_submenu_details(
-            self, submenu_id: uuid.UUID
-    ) -> tuple[Submenu, int] | None:
+    def _get_submenu_details(self, submenu_id: uuid.UUID) -> tuple[Submenu, int] | None:
         try:
-            submenu_details = (
+            submenu_details: tuple[Submenu, int] = (
                 self._submenu_repository.session.
                 query(Submenu, func.count(func.distinct(Dish.id)))
                 .outerjoin(Dish, Dish.submenu_id == Submenu.id)
@@ -37,28 +35,22 @@ class SubmenuService:
             print(e)
             return None
 
-    def is_submenu_exists_in_menu(
-            self, menu_id: uuid.UUID, submenu_id: uuid.UUID
-    ) -> bool:
-        submenu = self._submenu_repository.get_by_id(submenu_id)
+    def is_submenu_exists_in_menu(self, menu_id: uuid.UUID, submenu_id: uuid.UUID) -> bool:
+        submenu: Submenu | None = self._submenu_repository.get_by_id(submenu_id)
         return submenu.menu_id == menu_id if submenu else False
 
-    def is_submenu_exists(
-            self, unic_field: str | uuid.UUID
-    ) -> bool:
+    def is_submenu_exists(self, unic_field: str | uuid.UUID) -> bool:
         if isinstance(unic_field, uuid.UUID):
             return self._submenu_repository.get_by_id(unic_field) is not None
         return self._submenu_repository.get_by_title(unic_field) is not None
 
-    def get_all_submenus(
-            self, menu_id: uuid.UUID
-    ) -> list[SubmenuWithDishCountScheme]:
+    def get_all_submenus(self, menu_id: uuid.UUID) -> list[SubmenuWithDishCountScheme]:
 
-        submenus_with_details = []
-        submenus = self._submenu_repository.get_all(menu_id)
+        submenus_with_details: list = []
+        submenus: list[Submenu] = self._submenu_repository.get_all(menu_id)
 
         for submenu in submenus:
-            submenu_details = self.get_submenu_by_id(submenu.id)
+            submenu_details: SubmenuWithDishCountScheme = self.get_submenu_by_id(submenu.id)
             if not submenu_details:
                 continue
 
@@ -66,14 +58,13 @@ class SubmenuService:
 
         return submenus_with_details
 
-    def get_submenu_by_id(
-            self, submenu_id: uuid.UUID
-    ) -> SubmenuWithDishCountScheme | None:
+    def get_submenu_by_id(self, submenu_id: uuid.UUID) -> SubmenuWithDishCountScheme | None:
+        cached_submenu: object | None
 
         if cached_submenu := self._cache_repository.get(f'menu_{submenu_id}'):
             return SubmenuWithDishCountScheme(**pickle.loads(cached_submenu))
 
-        submenu_details = self._get_submenu_details(submenu_id)
+        submenu_details: tuple[Submenu, int] | None = self._get_submenu_details(submenu_id)
 
         if not submenu_details:
             return None
@@ -92,14 +83,14 @@ class SubmenuService:
         return submenu_with_detail
 
     def create_submenu(self, menu_id: uuid.UUID, data: dict) -> Submenu | None:
-        submenu = self._submenu_repository.create(data, menu_id)
+        submenu: Submenu | None = self._submenu_repository.create(data, menu_id)
         if submenu:
             self._cache_repository.delete(f'menu_{menu_id}')
 
         return submenu
 
     def update_submenu(self, submenu_id: uuid.UUID, data: dict) -> Submenu | None:
-        updated_submenu = self._submenu_repository.update(submenu_id, data)
+        updated_submenu: Submenu | None = self._submenu_repository.update(submenu_id, data)
         if updated_submenu:
             self._cache_repository.delete(f'submenu_{submenu_id}')
 
@@ -107,9 +98,9 @@ class SubmenuService:
 
     def delete_submenu(self, submenu_id: uuid.UUID) -> Submenu | None:
 
-        menu_id = self._submenu_repository.get_by_id(submenu_id).menu_id
-        dishes = self._submenu_repository.get_by_id(submenu_id).dishes
-        deleted_submenu = self._submenu_repository.delete(submenu_id)
+        menu_id: uuid.UUID = self._submenu_repository.get_by_id(submenu_id).menu_id
+        dishes: list[Dish] = self._submenu_repository.get_by_id(submenu_id).dishes
+        deleted_submenu: Submenu | None = self._submenu_repository.delete(submenu_id)
         if deleted_submenu:
             self._cache_repository.delete(f'menu_{menu_id}')
 
