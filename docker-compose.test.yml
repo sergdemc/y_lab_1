@@ -20,9 +20,9 @@ services:
 
         depends_on:
             test_db:
-                condition: service_started
+                condition: service_healthy
             redis-cache:
-                condition: service_started
+                condition: service_healthy
         restart: always
 
     test_db:
