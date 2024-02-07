@@ -57,6 +57,8 @@ API documentation is available at http://127.0.0.1:8000/docs.
 
 The test postman scenario is available [here](https://github.com/sergdemc/y_lab_1/blob/main/app/tests/test_postman_scenario.py).
 
+reverse() function is available [here](https://github.com/sergdemc/y_lab_1/blob/main/app/main.py#L23-L27).
+
 To run tests, use the command:
 ```bash
 make test-in-docker

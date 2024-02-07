@@ -1,11 +1,10 @@
 from enum import Enum
-from typing import Generator
+from typing import Callable, Generator
 
 import pytest
 from config import POSTGRES_URL
 from database.db import Base, get_session
 from database.models import Dish, Menu, Submenu
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from main import app
 from sqlalchemy import create_engine
@@ -33,8 +32,8 @@ client: TestClient = TestClient(app)
 
 
 @pytest.fixture
-def get_app() -> FastAPI:
-    return app
+def reverse() -> Callable:
+    return app.router.reverse
 
 
 @pytest.fixture
