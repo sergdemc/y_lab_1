@@ -50,18 +50,26 @@ class TestPostmanScenario:
         session.query(Menu).delete()
         session.commit()
 
-    def test_read_menu(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]) -> None:
+    def test_read_menu(
+            self,
+            get_reverse: Callable,
+            prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]
+    ) -> None:
         session, menu, *_ = prepare_test_data
-        response = client.get(url=reverse('read_menu', menu_id=menu.id))
+        response = client.get(url=get_reverse('read_menu', menu_id=menu.id))
         assert response.status_code == 200
         assert response.json()['id'] == str(menu.id)
         assert response.json()['submenus_count'] == 1
         assert response.json()['dishes_count'] == 2
 
-    def test_read_submenu(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]) -> None:
+    def test_read_submenu(
+            self,
+            get_reverse: Callable,
+            prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]
+    ) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.get(
-            url=reverse('read_submenu', menu_id=menu.id, submenu_id=submenu.id)
+            url=get_reverse('read_submenu', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(submenu.id)
@@ -69,40 +77,48 @@ class TestPostmanScenario:
 
     def test_delete_submenu(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]
     ) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.delete(
-            url=reverse('delete_submenu', menu_id=menu.id, submenu_id=submenu.id)
+            url=get_reverse('delete_submenu', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(submenu.id)
 
         response = client.get(
-            url=reverse('read_submenus', menu_id=menu.id)
+            url=get_reverse('read_submenus', menu_id=menu.id)
         )
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_read_dishes(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]) -> None:
+    def test_read_dishes(
+            self,
+            get_reverse: Callable,
+            prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]
+    ) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.get(
-            url=reverse('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
+            url=get_reverse('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_delete_menu(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]) -> None:
+    def test_delete_menu(
+            self,
+            get_reverse: Callable,
+            prepare_test_data: tuple[Session, Menu, Submenu, Dish, Dish]
+    ) -> None:
         session, menu, *_ = prepare_test_data
         response = client.delete(
-            url=reverse('delete_menu', menu_id=menu.id)
+            url=get_reverse('delete_menu', menu_id=menu.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(menu.id)
 
         response = client.get(
-            url=reverse('read_menus')
+            url=get_reverse('read_menus')
         )
         assert response.status_code == 200
         assert response.json() == []

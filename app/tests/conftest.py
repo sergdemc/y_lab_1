@@ -32,8 +32,15 @@ client: TestClient = TestClient(app)
 
 
 @pytest.fixture
-def reverse() -> Callable:
-    return app.router.reverse
+def get_reverse() -> Callable:
+    return reverse
+
+
+def reverse(route_name: str, **path_params) -> str:
+    for route in app.router.routes:
+        if route.name == route_name:
+            return route.path_format.format_map(path_params)
+    raise ValueError(f"No route found with name '{route_name}'")
 
 
 @pytest.fixture

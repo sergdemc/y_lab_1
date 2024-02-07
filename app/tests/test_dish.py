@@ -39,7 +39,7 @@ class TestDish:
         session.query(Menu).delete()
         session.commit()
 
-    def test_read_empty_dishes(self, reverse: Callable) -> None:
+    def test_read_empty_dishes(self, get_reverse: Callable) -> None:
         menu: Menu = create_test_entity(
             EntityType.MENU,
             title='menu1',
@@ -54,12 +54,12 @@ class TestDish:
         assert submenu.menu_id == menu.id
 
         response = client.get(
-            url=reverse('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
+            url=get_reverse('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert len(response.json()) == 0
 
-    def test_create_dish(self, reverse: Callable, get_db: Session) -> None:
+    def test_create_dish(self, get_reverse: Callable, get_db: Session) -> None:
         menu: Menu = create_test_entity(
             EntityType.MENU,
             title='menu1',
@@ -77,7 +77,7 @@ class TestDish:
             'price': '100'
         }
         response = client.post(
-            url=reverse('create_dish', menu_id=menu.id, submenu_id=submenu.id),
+            url=get_reverse('create_dish', menu_id=menu.id, submenu_id=submenu.id),
             json=dish_data
         )
         assert response.status_code == 201
@@ -93,7 +93,7 @@ class TestDish:
 
     def test_create_dish_with_existing_title(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]
     ) -> None:
         session, menu, submenu, dish1, *_ = prepare_test_data
@@ -103,16 +103,16 @@ class TestDish:
             'price': '150'
         }
         response = client.post(
-            url=reverse('create_dish', menu_id=menu.id, submenu_id=submenu.id),
+            url=get_reverse('create_dish', menu_id=menu.id, submenu_id=submenu.id),
             json=dish_data
         )
         assert response.status_code == 400
         assert response.json()['detail'] == 'dish exists'
 
-    def test_read_dish(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]) -> None:
+    def test_read_dish(self, get_reverse: Callable, prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
         response = client.get(
-            url=reverse('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish.id)
+            url=get_reverse('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(dish.id)
@@ -120,33 +120,33 @@ class TestDish:
 
     def test_read_dish_with_invalid_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]
     ) -> None:
         invalid_id: str = 'c11907df-84fe-481c-94fa-fdc9fcab34b0'
         session, menu, submenu, dish, *_ = prepare_test_data
         response = client.get(
-            url=reverse('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=invalid_id)
+            url=get_reverse('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=invalid_id)
         )
         assert response.status_code == 404
         assert response.json()['detail'] == 'dish not found'
 
     def test_read_dish_with_not_uuid_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]
     ) -> None:
         session, menu, submenu, *_ = prepare_test_data
         response = client.get(
-            url=reverse('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id='123')
+            url=get_reverse('read_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id='123')
         )
         assert response.status_code == 422
         assert response.json()['detail'][0]['type'] == 'uuid_parsing'
 
-    def test_read_dishes(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]) -> None:
+    def test_read_dishes(self, get_reverse: Callable, prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]) -> None:
         session, menu, submenu, dish1, dish2 = prepare_test_data
         response = client.get(
-            url=reverse('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
+            url=get_reverse('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert len(response.json()) == 2
@@ -160,7 +160,7 @@ class TestDish:
         assert response.json()[1]['description'] == dish2.description
         assert response.json()[1]['price'] == dish2.price
 
-    def test_update_dish(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]) -> None:
+    def test_update_dish(self, get_reverse: Callable, prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
         dish_data: dict = {
             'title': 'updated dish1',
@@ -168,7 +168,7 @@ class TestDish:
             'price': '200'
         }
         response = client.patch(
-            url=reverse('update_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish.id),
+            url=get_reverse('update_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish.id),
             json=dish_data
         )
         assert response.status_code == 200
@@ -184,7 +184,7 @@ class TestDish:
 
     def test_update_dish_with_invalid_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]
     ) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
@@ -195,7 +195,7 @@ class TestDish:
             'price': '200'
         }
         response = client.patch(
-            url=reverse('update_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=invalid_id),
+            url=get_reverse('update_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=invalid_id),
             json=dish_data
         )
         assert response.status_code == 404
@@ -203,7 +203,7 @@ class TestDish:
 
     def test_update_dish_with_invalid_menu_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]
     ) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
@@ -214,7 +214,7 @@ class TestDish:
             'price': '200'
         }
         response = client.patch(
-            url=reverse('update_dish', menu_id=invalid_id, submenu_id=submenu.id, dish_id=dish.id),
+            url=get_reverse('update_dish', menu_id=invalid_id, submenu_id=submenu.id, dish_id=dish.id),
             json=dish_data
         )
         assert response.status_code == 404
@@ -222,7 +222,7 @@ class TestDish:
 
     def test_update_dish_with_invalid_submenu_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]
     ) -> None:
         session, menu, submenu, dish, *_ = prepare_test_data
@@ -233,28 +233,28 @@ class TestDish:
             'price': '200'
         }
         response = client.patch(
-            url=reverse('update_dish', menu_id=menu.id, submenu_id=invalid_id, dish_id=dish.id),
+            url=get_reverse('update_dish', menu_id=menu.id, submenu_id=invalid_id, dish_id=dish.id),
             json=dish_data
         )
         assert response.status_code == 404
         assert response.json()['detail'] == 'submenu not found'
 
-    def test_delete_dish(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]) -> None:
+    def test_delete_dish(self, get_reverse: Callable, prepare_test_data: tuple[Session, Menu, Menu, Dish, Dish]) -> None:
         session, menu, submenu, dish1, dish2 = prepare_test_data
         response = client.delete(
-            url=reverse('delete_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish1.id)
+            url=get_reverse('delete_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish1.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(dish1.id)
 
         response = client.delete(
-            url=reverse('delete_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish2.id)
+            url=get_reverse('delete_dish', menu_id=menu.id, submenu_id=submenu.id, dish_id=dish2.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(dish2.id)
 
         response = client.get(
-            url=reverse('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
+            url=get_reverse('read_dishes', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json() == []

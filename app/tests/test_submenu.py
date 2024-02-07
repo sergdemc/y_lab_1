@@ -26,19 +26,19 @@ class TestSubmenu:
         session.query(Menu).delete()
         session.commit()
 
-    def test_read_empty_submenus(self, reverse: Callable) -> None:
+    def test_read_empty_submenus(self, get_reverse: Callable) -> None:
         menu: Menu = create_test_entity(
             EntityType.MENU,
             title='menu1',
             description='description menu1'
         )
         response = client.get(
-            url=reverse('read_submenus', menu_id=menu.id)
+            url=get_reverse('read_submenus', menu_id=menu.id)
         )
         assert response.status_code == 200
         assert len(response.json()) == 0
 
-    def test_create_submenu(self, reverse: Callable, get_db: Session) -> None:
+    def test_create_submenu(self, get_reverse: Callable, get_db: Session) -> None:
         menu: Menu = create_test_entity(
             EntityType.MENU,
             title='menu1',
@@ -49,7 +49,7 @@ class TestSubmenu:
             'description': 'description submenu1'
         }
         response = client.post(
-            url=reverse('create_submenu', menu_id=menu.id),
+            url=get_reverse('create_submenu', menu_id=menu.id),
             json=submenu_data
         )
         assert response.status_code == 201
@@ -64,12 +64,12 @@ class TestSubmenu:
 
     def test_create_submenu_with_existing_title(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Submenu]
     ) -> None:
         session, menu, *_ = prepare_test_data
         response = client.post(
-            url=reverse('create_submenu', menu_id=menu.id),
+            url=get_reverse('create_submenu', menu_id=menu.id),
             json={
                 'title': 'submenu1',
                 'description': 'description new submenu1'
@@ -78,10 +78,10 @@ class TestSubmenu:
         assert response.status_code == 400
         assert response.json()['detail'] == 'submenu exists'
 
-    def test_read_submenu(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu]) -> None:
+    def test_read_submenu(self, get_reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu]) -> None:
         session, menu, submenu = prepare_test_data
         response = client.get(
-            url=reverse('read_submenu', menu_id=menu.id, submenu_id=submenu.id)
+            url=get_reverse('read_submenu', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(submenu.id)
@@ -90,45 +90,45 @@ class TestSubmenu:
 
     def test_read_submenu_with_invalid_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Submenu]
     ) -> None:
         session, menu, submenu = prepare_test_data
         invalid_id: str = 'c11907df-84fe-481c-94fa-fdc9fcab34b0'
         response = client.get(
-            url=reverse('read_submenu', menu_id=menu.id, submenu_id=invalid_id)
+            url=get_reverse('read_submenu', menu_id=menu.id, submenu_id=invalid_id)
         )
         assert response.status_code == 404
         assert response.json()['detail'] == 'submenu not found'
 
     def test_read_submenu_with_not_uuid_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Submenu]
     ) -> None:
         session, menu, submenu = prepare_test_data
         response = client.get(
-            url=reverse('read_submenu', menu_id=menu.id, submenu_id='123')
+            url=get_reverse('read_submenu', menu_id=menu.id, submenu_id='123')
         )
         assert response.status_code == 422
         assert response.json()['detail'][0]['type'] == 'uuid_parsing'
 
-    def test_read_submenus(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu]):
+    def test_read_submenus(self, get_reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu]):
         session, menu, submenu = prepare_test_data
         response = client.get(
-            url=reverse('read_submenus', menu_id=menu.id)
+            url=get_reverse('read_submenus', menu_id=menu.id)
         )
         assert response.status_code == 200
         assert len(response.json()) == 1
 
-    def test_update_submenu(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu]) -> None:
+    def test_update_submenu(self, get_reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu]) -> None:
         session, menu, submenu = prepare_test_data
         submenu_data: dict = {
             'title': 'updated submenu1',
             'description': 'updated description submenu1'
         }
         response = client.patch(
-            url=reverse('update_submenu', menu_id=menu.id, submenu_id=submenu.id),
+            url=get_reverse('update_submenu', menu_id=menu.id, submenu_id=submenu.id),
             json=submenu_data
         )
         assert response.status_code == 200
@@ -141,7 +141,7 @@ class TestSubmenu:
 
     def test_update_submenu_with_invalid_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Submenu]
     ) -> None:
         session, menu, submenu = prepare_test_data
@@ -151,7 +151,7 @@ class TestSubmenu:
             'description': 'updated description submenu1'
         }
         response = client.patch(
-            url=reverse('update_submenu', menu_id=menu.id, submenu_id=invalid_id),
+            url=get_reverse('update_submenu', menu_id=menu.id, submenu_id=invalid_id),
             json=submenu_data
         )
         assert response.status_code == 404
@@ -159,7 +159,7 @@ class TestSubmenu:
 
     def test_update_submenu_with_invalid_menu_id(
             self,
-            reverse: Callable,
+            get_reverse: Callable,
             prepare_test_data: tuple[Session, Menu, Submenu]
     ) -> None:
         session, menu, submenu = prepare_test_data
@@ -169,16 +169,16 @@ class TestSubmenu:
             'description': 'updated description submenu1'
         }
         response = client.patch(
-            url=reverse('update_submenu', menu_id=invalid_id, submenu_id=submenu.id),
+            url=get_reverse('update_submenu', menu_id=invalid_id, submenu_id=submenu.id),
             json=submenu_data
         )
         assert response.status_code == 404
         assert response.json()['detail'] == 'menu not found'
 
-    def test_delete_submenu(self, reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu]) -> None:
+    def test_delete_submenu(self, get_reverse: Callable, prepare_test_data: tuple[Session, Menu, Submenu]) -> None:
         session, menu, submenu = prepare_test_data
         response = client.delete(
-            url=reverse('delete_submenu', menu_id=menu.id, submenu_id=submenu.id)
+            url=get_reverse('delete_submenu', menu_id=menu.id, submenu_id=submenu.id)
         )
         assert response.status_code == 200
         assert response.json()['id'] == str(submenu.id)
